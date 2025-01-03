@@ -1,0 +1,67 @@
+<mat-grid-list cols="1" rowHeight="50px">
+  <mat-grid-tile>
+    <p style="margin-top: 50px">
+      <strong>
+        Experiment using Google VertexAI AutoML Tabular Classification for identifying spoof or bonafide (bona fide) audios
+      </strong>
+    </p>
+  </mat-grid-tile>
+  <mat-grid-tile>
+    <span>Note this is an ongoing experiment, results may <b>not</b> be accurate</span>
+  </mat-grid-tile>
+  <mat-grid-tile>
+    <button type="button" mat-raised-button (click)="inputFiles.click()">Choose Audio File/s, for processing ( spoof or bonafide )</button>
+    <input
+      type="file"
+      class="form-control"
+      multiple
+      hidden
+      #inputFiles
+      name="files"
+      (change)="processFiles(inputFiles)"
+      id="files"
+      required
+      accept="audio/*">
+  </mat-grid-tile>
+  <mat-grid-tile>
+    <span>Audio formats: m4a, mp3 are not supported for now</span>
+  </mat-grid-tile>
+</mat-grid-list>
+
+
+@if (currentTasks().length) {
+  <div class="example-action-buttons">
+    <button mat-button (click)="accordion.openAll()">Expand All</button>
+    <button mat-button (click)="accordion.closeAll()">Collapse All</button>
+  </div>
+  <mat-accordion class="example-headers-align" multi #accordion="matAccordion">
+
+    @for (task of currentTasks(); track task.name) {
+      <mat-expansion-panel>
+
+        <mat-expansion-panel-header collapsedHeight="120px" expandedHeight="180px">
+          <mat-panel-title> {{ task.name }} ({{ task.progress | async }})</mat-panel-title>
+          <mat-panel-description>
+
+            @let prediction = task.data()?.prediction;
+            @let css = (prediction === 'bonafide') ? 'accent-color' : 'warn-color';
+            @let progress = task.progress_numeric | async;
+
+            @if (prediction) {
+              <b>Result:</b>&nbsp;<span [class]="css">{{ prediction }}</span>
+            } @else if (progress && progress < 100) {
+              <mat-progress-bar mode="determinate" [value]="progress"></mat-progress-bar>
+            } @else {
+              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            }
+
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <p><b>JSON:</b> {{task.data() | json}}</p>
+
+      </mat-expansion-panel>
+    }
+
+  </mat-accordion>
+}
